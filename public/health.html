@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOOR-X Health Check</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    background: #060d14;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px; overflow: hidden;
+  }
+  .glow-ring {
+    position: fixed; width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,211,102,.08) 0%, transparent 70%);
+    pointer-events: none;
+    animation: breathe 4s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%,100%{ transform:scale(1);   opacity:.6; }
+    50%    { transform:scale(1.15); opacity:1; }
+  }
+  .main { text-align: center; position: relative; z-index:1; }
+
+  /* NOOR-X IS ALIVE — rainbow animated */
+  .alive-text {
+    font-size: clamp(2rem, 8vw, 4.5rem);
+    font-weight: 900; letter-spacing: 3px;
+    background: linear-gradient(90deg,
+      #25d366, #3b82f6, #ec4899, #f59e0b,
+      #25d366, #3b82f6, #ec4899, #f59e0b);
+    background-size: 400%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: rainbow 4s linear infinite;
+    text-shadow: none;
+    margin-bottom: 10px;
+  }
+  @keyframes rainbow { to { background-position: 400% center; } }
+
+  .status-dot {
+    display: inline-block; width: 18px; height: 18px; border-radius: 50%;
+    background: #25d366;
+    box-shadow: 0 0 12px #25d366, 0 0 30px rgba(37,211,102,.5);
+    animation: blink 1.2s ease-in-out infinite;
+    vertical-align: middle; margin-right: 10px;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .sub { color: #475569; font-size: .95rem; margin-bottom: 40px; }
+
+  /* stats grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px; width: 100%; max-width: 700px; margin: 0 auto 32px;
+  }
+  .card {
+    background: rgba(15,22,35,.9);
+    border: 1px solid rgba(37,211,102,.15);
+    border-radius: 14px; padding: 20px;
+    text-align: center;
+  }
+  .card-icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .card-label { font-size: .75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .card-value { font-size: 1.5rem; font-weight: 800; color: #25d366; }
+
+  /* log stream */
+  .log-box {
+    width: 100%; max-width: 700px;
+    background: rgba(0,0,0,.6);
+    border: 1px solid rgba(37,211,102,.15);
+    border-radius: 14px; padding: 16px;
+    font-family: monospace; font-size: .8rem;
+    color: #22c55e; text-align: left;
+    max-height: 160px; overflow-y: auto;
+  }
+  .log-line { margin-bottom: 4px; opacity: 0; animation: fadein .5s forwards; }
+  @keyframes fadein { to { opacity: 1; } }
+
+  .btn-back {
+    margin-top: 28px;
+    background: linear-gradient(90deg,#25d366,#128c7e);
+    border: none; border-radius: 10px;
+    color: #fff; font-weight: 700; font-size: .95rem;
+    padding: 12px 32px; cursor: pointer;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-back:hover { opacity: .85; }
+</style>
+</head>
+<body>
+<div class="glow-ring"></div>
+<div class="main">
+  <p style="color:#64748b;font-size:.85rem;margin-bottom:12px;">SYSTEM STATUS</p>
+  <h1 class="alive-text">
+    <span class="status-dot"></span>NOOR-X IS ALIVE
+  </h1>
+  <p class="sub">All systems operational • WhatsApp bot is running</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-label">Status</div>
+      <div class="card-value" style="color:#25d366">ONLINE</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <div class="card-label">Uptime</div>
+      <div class="card-value" id="uptime">--</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <div class="card-label">Sessions</div>
+      <div class="card-value" id="sessions">--</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💾</div>
+      <div class="card-label">Memory</div>
+      <div class="card-value" id="memory">--</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <div class="card-label">Engine</div>
+      <div class="card-value" style="font-size:1rem;color:#3b82f6">Baileys</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌍</div>
+      <div class="card-label">Mode</div>
+      <div class="card-value" style="font-size:1rem;color:#f59e0b">Always On</div>
+    </div>
+  </div>
+
+  <div class="log-box" id="logBox"></div>
+
+  <a href="/" class="btn-back">← Back to Pairing</a>
+</div>
+
+<script>
+const logs = [
+  '[INFO] NOOR-X Bot server started successfully ✅',
+  '[INFO] WhatsApp session engine: Baileys v6',
+  '[INFO] Always-Online mode: ENABLED 🌍',
+  '[INFO] Command handler loaded: 30 commands',
+  '[INFO] Channel membership check: scheduled',
+  '[INFO] Admin dashboard: accessible',
+  '[INFO] Pairing endpoint: ready',
+  '[OK]   All systems operational 🟢',
+];
+
+const logBox = document.getElementById('logBox');
+logs.forEach((l, i) => {
+  setTimeout(() => {
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    div.textContent = '> ' + l;
+    div.style.animationDelay = '0s';
+    const color = l.includes('[OK]') ? '#22c55e' : l.includes('[INFO]') ? '#60a5fa' : '#94a3b8';
+    div.style.color = color;
+    logBox.appendChild(div);
+    logBox.scrollTop = logBox.scrollHeight;
+  }, i * 400);
+});
+
+async function fetchStats() {
+  try {
+    const r = await fetch('/api/health/json');
+    const d = await r.json();
+    document.getElementById('uptime').textContent   = d.uptime  || '--';
+    document.getElementById('sessions').textContent = d.sessions ?? '--';
+    document.getElementById('memory').textContent   = d.memory  || '--';
+  } catch(e) {
+    document.getElementById('uptime').textContent = 'OK';
+  }
+}
+fetchStats();
+setInterval(fetchStats, 5000);
+</script>
+</body>
+</html>

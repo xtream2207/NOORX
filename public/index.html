@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>NOOR-X Pairing</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#25d366;--t:#128c7e;--b:#3b82f6;--p:#8b5cf6;
+  --y:#f59e0b;--r:#ef4444;--pk:#ec4899;
+  --card:rgba(11,18,30,.97);
+}
+body{
+  font-family:'Segoe UI',sans-serif;min-height:100vh;
+  background:
+    radial-gradient(ellipse at 15% 10%,rgba(37,211,102,.13) 0%,transparent 50%),
+    radial-gradient(ellipse at 85% 85%,rgba(59,130,246,.11) 0%,transparent 50%),
+    linear-gradient(170deg,#06150d 0%,#070e18 55%,#090f1f 100%);
+  display:flex;flex-direction:column;align-items:center;
+  padding:18px 14px 50px;
+}
+
+/* ═══ LOGO ═══ */
+.logo{text-align:center;margin:8px 0 18px}
+.logo-box{
+  width:90px;height:90px;border-radius:20px;margin:0 auto 12px;
+  background:linear-gradient(135deg,#071f0f,#091830);
+  border:1.5px solid rgba(37,211,102,.35);
+  box-shadow:0 0 35px rgba(37,211,102,.22),0 0 70px rgba(37,211,102,.08);
+  display:flex;align-items:center;justify-content:center;font-size:44px;
+}
+.logo-title{
+  font-size:1.9rem;font-weight:900;letter-spacing:2px;
+  background:linear-gradient(90deg,#25d366,#3b82f6,#ec4899,#25d366);
+  background-size:300%;-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 4s linear infinite;
+}
+@keyframes shimmer{to{background-position:300% center}}
+.logo-sub{color:var(--g);font-size:.85rem;margin-top:4px;
+  display:flex;align-items:center;justify-content:center;gap:5px}
+
+/* ═══ CARD ═══ */
+.card{
+  width:100%;max-width:430px;
+  background:var(--card);
+  border-radius:22px;border:1px solid rgba(37,211,102,.2);
+  box-shadow:0 28px 70px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.03);
+  padding:24px 20px;
+}
+.field-label{font-size:.76rem;font-weight:700;color:#475569;
+  letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px}
+
+/* ═══ INPUT ═══ */
+input[type=tel]{
+  width:100%;padding:14px 16px;
+  background:rgba(255,255,255,.04);
+  border:1.5px solid rgba(37,211,102,.22);
+  border-radius:12px;color:#fff;font-size:1.05rem;
+  letter-spacing:1px;outline:none;
+  transition:border-color .25s,box-shadow .25s;
+}
+input[type=tel]:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(37,211,102,.13)}
+input[type=tel]::placeholder{color:#1e3a2a}
+
+/* ═══ BUTTONS ═══ */
+.btn{
+  width:100%;padding:14px;border:none;border-radius:12px;
+  font-weight:800;font-size:.94rem;letter-spacing:.4px;
+  cursor:pointer;margin-top:10px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:opacity .15s,transform .1s,box-shadow .2s;
+}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-pair{background:linear-gradient(90deg,#25d366,#128c7e);color:#fff;
+  box-shadow:0 4px 22px rgba(37,211,102,.32)}
+.btn-pair:hover:not(:disabled){box-shadow:0 6px 30px rgba(37,211,102,.48)}
+.btn-reset{background:rgba(99,102,241,.13);border:1.5px solid rgba(99,102,241,.28);color:#818cf8}
+.btn-reset:hover:not(:disabled){background:rgba(99,102,241,.22)}
+.btn-channel{background:linear-gradient(90deg,#25d366,#16a34a);color:#fff;
+  letter-spacing:.7px;box-shadow:0 4px 16px rgba(37,211,102,.22)}
+.btn-telegram{background:linear-gradient(90deg,#3b82f6,#0ea5e9);color:#fff;
+  letter-spacing:.7px;box-shadow:0 4px 16px rgba(59,130,246,.22)}
+
+/* ═══ STATUS BAR ═══ */
+.status-bar{
+  display:flex;align-items:center;gap:9px;
+  padding:10px 14px;border-radius:10px;margin-top:11px;
+  background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.16);
+  font-size:.79rem;font-weight:600;color:var(--g);
+  transition:all .3s;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--g);
+  box-shadow:0 0 6px var(--g);animation:pulse 1.4s ease infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.72)}}
+
+/* ═══ LOADING OVERLAY ═══ */
+.loading-box{
+  margin-top:14px;padding:22px 16px;
+  background:rgba(37,211,102,.04);
+  border:1.5px solid rgba(37,211,102,.18);
+  border-radius:16px;text-align:center;
+  display:none;
+}
+/* orbital spinner */
+.orbit{
+  position:relative;width:64px;height:64px;margin:0 auto 16px;
+}
+.orbit-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:2.5px solid transparent;animation:orbit-spin 1.2s linear infinite;
+}
+.orbit-ring:nth-child(1){
+  border-top-color:#25d366;animation-duration:1.2s;
+}
+.orbit-ring:nth-child(2){
+  border-right-color:#3b82f6;animation-duration:1.8s;animation-direction:reverse;
+  inset:8px;
+}
+.orbit-ring:nth-child(3){
+  border-bottom-color:#ec4899;animation-duration:2.4s;
+  inset:16px;
+}
+.orbit-core{
+  position:absolute;inset:22px;border-radius:50%;
+  background:rgba(37,211,102,.15);
+  animation:core-pulse 1.2s ease infinite;
+}
+@keyframes orbit-spin{to{transform:rotate(360deg)}}
+@keyframes core-pulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.3);opacity:1}}
+
+.load-title{font-size:.9rem;font-weight:700;color:#e2e8f0;margin-bottom:6px}
+.load-steps{display:flex;flex-direction:column;gap:6px;margin-top:10px;text-align:left}
+.load-step{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 10px;border-radius:8px;
+  font-size:.78rem;color:#64748b;
+  transition:all .4s;
+}
+.load-step.active{
+  background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.2);
+  color:#25d366;
+}
+.load-step.done{color:#22c55e}
+.load-step .ls-icon{font-size:.9rem;flex-shrink:0;width:18px;text-align:center}
+.load-step .ls-bar{
+  flex:1;height:2px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;
+}
+.load-step.active .ls-bar::after{
+  content:'';display:block;height:100%;
+  background:linear-gradient(90deg,var(--g),var(--b));
+  animation:bar-fill 2s ease forwards;
+  border-radius:2px;
+}
+@keyframes bar-fill{from{width:0}to{width:100%}}
+
+/* ═══ CODE BOX ═══ */
+.code-box{
+  margin-top:14px;padding:22px 16px;
+  background:linear-gradient(135deg,rgba(37,211,102,.08),rgba(59,130,246,.05));
+  border:2px solid rgba(37,211,102,.35);
+  border-radius:18px;text-align:center;
+  display:none;animation:pop-in .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop-in{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.code-label{font-size:.7rem;color:#475569;text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:14px}
+.code-display{
+  font-size:2.7rem;font-weight:900;letter-spacing:12px;
+  color:var(--g);font-family:'Courier New',monospace;
+  text-shadow:0 0 28px rgba(37,211,102,.55);
+  cursor:pointer;user-select:all;display:inline-block;
+  padding:6px 4px;border-radius:8px;
+  transition:background .2s;
+}
+.code-display:hover{background:rgba(37,211,102,.1)}
+.code-display:active{background:rgba(37,211,102,.2)}
+.copy-row{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:10px;
+}
+.copy-btn{
+  background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);
+  color:var(--g);border-radius:20px;padding:5px 16px;
+  font-size:.78rem;font-weight:700;cursor:pointer;
+  transition:background .15s;
+}
+.copy-btn:hover{background:rgba(37,211,102,.25)}
+.copy-ok{
+  font-size:.76rem;color:#22c55e;
+  opacity:0;transition:opacity .3s;display:flex;align-items:center;gap:4px;
+}
+.copy-ok.show{opacity:1}
+.code-hint{font-size:.74rem;color:#334155;margin-top:8px}
+
+/* ═══ ERROR ═══ */
+.err-box{
+  margin-top:12px;padding:12px 14px;
+  background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.28);
+  border-radius:10px;color:#f87171;font-size:.83rem;text-align:center;
+  display:none;
+}
+
+/* ═══ DIVIDER / ENC ═══ */
+.divider{height:1px;background:rgba(255,255,255,.055);margin:18px 0}
+.enc{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px;border-radius:9px;margin-top:10px;
+  background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.16);
+  color:#60a5fa;font-size:.76rem;font-weight:600;
+}
+
+/* ═══ HOW TO PAIR STEPS ═══ */
+.steps-card{
+  width:100%;max-width:430px;margin-top:18px;
+  background:var(--card);border-radius:20px;
+  border:1px solid rgba(59,130,246,.18);
+  box-shadow:0 12px 40px rgba(0,0,0,.55);
+  padding:22px 20px;
+}
+.steps-heading{
+  font-size:.92rem;font-weight:800;letter-spacing:.4px;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+  background:linear-gradient(90deg,#3b82f6,#25d366);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.steps-heading::before{content:'📋';-webkit-text-fill-color:initial}
+
+.step{
+  display:flex;align-items:flex-start;gap:13px;
+  margin-bottom:12px;padding:12px 14px;border-radius:13px;
+  border:1px solid transparent;
+}
+.step:last-child{margin-bottom:0}
+.s1{background:rgba(37,211,102,.07);border-color:rgba(37,211,102,.2)}
+.s2{background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.2)}
+.s3{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2)}
+.s4{background:rgba(139,92,246,.07);border-color:rgba(139,92,246,.2)}
+.s5{background:rgba(236,72,153,.07);border-color:rgba(236,72,153,.2)}
+
+.step-n{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.77rem;font-weight:900;
+}
+.s1 .step-n{background:rgba(37,211,102,.2);color:#25d366}
+.s2 .step-n{background:rgba(59,130,246,.2);color:#60a5fa}
+.s3 .step-n{background:rgba(245,158,11,.2);color:#fbbf24}
+.s4 .step-n{background:rgba(139,92,246,.2);color:#a78bfa}
+.s5 .step-n{background:rgba(236,72,153,.2);color:#f472b6}
+
+.step-t{font-size:.83rem;font-weight:700;margin-bottom:3px}
+.s1 .step-t{color:#25d366}
+.s2 .step-t{color:#60a5fa}
+.s3 .step-t{color:#fbbf24}
+.s4 .step-t{color:#a78bfa}
+.s5 .step-t{color:#f472b6}
+.step-d{font-size:.77rem;color:#475569;line-height:1.55}
+
+/* ═══ FOOTER ═══ */
+footer{margin-top:20px;text-align:center;font-size:.74rem;color:#1e293b}
+footer .sec{color:var(--g);font-weight:600}
+footer a{color:var(--b);text-decoration:none}
+footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<!-- LOGO -->
+<div class="logo">
+  <div class="logo-box">📱</div>
+  <h1 class="logo-title">NOOR-X PAIRING</h1>
+  <p class="logo-sub">🚀 Connect your WhatsApp account securely</p>
+</div>
+
+<!-- MAIN CARD -->
+<div class="card">
+  <div class="field-label">📱 WhatsApp Number (with country code)</div>
+  <input type="tel" id="phone" placeholder="e.g. 256747304196"
+         inputmode="numeric" onkeydown="if(event.key==='Enter')doPair()">
+
+  <button class="btn btn-pair" id="pairBtn" onclick="doPair()">
+    🔓 Get Pairing Code
+  </button>
+  <button class="btn btn-reset" id="resetBtn" onclick="doReset()">
+    🔄 Reset
+  </button>
+
+  <!-- Status -->
+  <div class="status-bar" id="statusBar">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">🔒 Ready — enter your number above</span>
+  </div>
+
+  <!-- ══ LOADING ANIMATION ══ -->
+  <div class="loading-box" id="loadingBox">
+    <div class="orbit">
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring"></div>
+      <div class="orbit-core"></div>
+    </div>
+    <div class="load-title" id="loadTitle">Connecting to WhatsApp...</div>
+    <div class="load-steps">
+      <div class="load-step" id="ls1">
+        <span class="ls-icon">🌐</span>
+        <span>Establishing secure connection</span>
+        <div class="ls-bar"></div>
+      </div>
+      <div class="load-step" id="ls2">
+        <span class="ls-icon">🔐</span>
+        <span>Authenticating with WhatsApp</span>
+        <div class="ls-bar"></div>
+      </div>
+      <div class="load-step" id="ls3">
+        <span class="ls-icon">🔑</span>
+        <span>Generating pairing code</span>
+        <div class="ls-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAIRING CODE DISPLAY ══ -->
+  <div class="code-box" id="codeBox">
+    <div class="code-label">✅ Your Pairing Code — tap to copy</div>
+    <div class="code-display" id="codeDisplay" onclick="copyCode()" title="Tap to copy">
+      --------
+    </div>
+    <div class="copy-row">
+      <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+      <span class="copy-ok" id="copyOk">✅ Copied!</span>
+    </div>
+    <div class="code-hint">Enter this code in WhatsApp → Linked Devices</div>
+  </div>
+
+  <!-- Error -->
+  <div class="err-box" id="errBox"></div>
+
+  <div class="divider"></div>
+
+  <button class="btn btn-channel"
+    onclick="window.open('https://whatsapp.com/channel/0029Vb7vchCCBtxK3Ria2k1i','_blank')">
+    🟡 JOIN OUR WHATSAPP CHANNEL
+  </button>
+  <button class="btn btn-telegram"
+    onclick="window.open('https://t.me/noorxsupport','_blank')">
+    💬 CONTACT OWNER ON TELEGRAM
+  </button>
+
+  <div class="enc">🔒 End-to-End Encrypted &nbsp;•&nbsp; Your data is safe</div>
+</div>
+
+<!-- HOW TO PAIR -->
+<div class="steps-card">
+  <div class="steps-heading">HOW TO PAIR YOUR ACCOUNT</div>
+
+  <div class="step s1">
+    <div class="step-n">1</div>
+    <div>
+      <div class="step-t">Enter Your Phone Number</div>
+      <div class="step-d">Type your full WhatsApp number including country code — no + or spaces.
+        Example: <strong style="color:#25d366">256747304196</strong></div>
+    </div>
+  </div>
+
+  <div class="step s2">
+    <div class="step-n">2</div>
+    <div>
+      <div class="step-t">Click "Get Pairing Code"</div>
+      <div class="step-d">Tap the green button and wait a few seconds while we connect
+        to WhatsApp and generate your unique 8-character code.</div>
+    </div>
+  </div>
+
+  <div class="step s3">
+    <div class="step-n">3</div>
+    <div>
+      <div class="step-t">Copy the Code That Appears</div>
+      <div class="step-d">The code appears right here on this page — tap it or press
+        <strong style="color:#fbbf24">📋 Copy Code</strong> to copy it to your clipboard.</div>
+    </div>
+  </div>
+
+  <div class="step s4">
+    <div class="step-n">4</div>
+    <div>
+      <div class="step-t">Open WhatsApp → Linked Devices</div>
+      <div class="step-d">On your phone: open WhatsApp → tap the three-dot menu (⋮) →
+        <strong style="color:#a78bfa">Linked Devices</strong> → Link a Device →
+        <em>"Link with phone number instead"</em></div>
+    </div>
+  </div>
+
+  <div class="step s5">
+    <div class="step-n">5</div>
+    <div>
+      <div class="step-t">Enter the Code &amp; Done! 🎉</div>
+      <div class="step-d">Paste or type the 8-character code shown above.
+        NOOR-X Bot will be linked to your WhatsApp and online immediately!</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p class="sec">🔒 Secure &amp; Encrypted</p>
+  <p style="margin-top:5px">© 2026 NOOR-X • All Rights Reserved</p>
+  <p style="margin-top:6px">
+    <a href="/health">Health Check</a> &nbsp;|&nbsp;
+    <a href="/admin/login">Admin Panel</a>
+  </p>
+</footer>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let currentCode   = '';
+let currentUserId = '';
+let fetchAbort    = null;
+let loadStepTimer = null;
+
+// ── Shortcuts ─────────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const phone     = () => $('phone');
+const pairBtn   = () => $('pairBtn');
+const resetBtn  = () => $('resetBtn');
+const statusTxt = () => $('statusText');
+const statusDot = () => $('statusDot');
+
+// ── Loading animation steps ───────────────────────────────────────────────
+const LOAD_STEPS = [
+  { id:'ls1', delay:0,    title:'Connecting to WhatsApp...' },
+  { id:'ls2', delay:2500, title:'Authenticating securely...' },
+  { id:'ls3', delay:5000, title:'Requesting pairing code...' },
+];
+
+function startLoadingAnimation() {
+  $('loadingBox').style.display = 'block';
+  $('codeBox').style.display    = 'none';
+  $('errBox').style.display     = 'none';
+
+  // Reset all steps
+  LOAD_STEPS.forEach(s => {
+    const el = $(s.id);
+    el.classList.remove('active','done');
+  });
+
+  // Animate steps one by one
+  LOAD_STEPS.forEach((s, i) => {
+    setTimeout(() => {
+      // Mark previous done
+      if (i > 0) {
+        const prev = $(LOAD_STEPS[i-1].id);
+        prev.classList.remove('active');
+        prev.classList.add('done');
+        prev.querySelector('.ls-icon').textContent = '✅';
+      }
+      $(s.id).classList.add('active');
+      $('loadTitle').textContent = s.title;
+    }, s.delay);
+  });
+}
+
+function stopLoadingAnimation(success) {
+  // Mark last step done/failed
+  const last = $(LOAD_STEPS[LOAD_STEPS.length - 1].id);
+  if (success) {
+    LOAD_STEPS.forEach(s => {
+      const el = $(s.id);
+      el.classList.remove('active');
+      el.classList.add('done');
+      el.querySelector('.ls-icon').textContent = '✅';
+    });
+    $('loadTitle').textContent = '✅ Pairing code ready!';
+    setTimeout(() => { $('loadingBox').style.display = 'none'; }, 800);
+  } else {
+    last.classList.remove('active');
+    last.querySelector('.ls-icon').textContent = '❌';
+    $('loadTitle').textContent = '❌ Failed — please try again';
+    setTimeout(() => { $('loadingBox').style.display = 'none'; }, 1200);
+  }
+}
+
+// ── Pair ──────────────────────────────────────────────────────────────────
+async function doPair() {
+  const num = phone().value.replace(/\D/g,'').trim();
+  if (!num || num.length < 7) {
+    return showErr('❌ Enter a valid phone number with country code');
+  }
+
+  // Reset state
+  hideErr();
+  $('codeBox').style.display = 'none';
+  currentCode = '';
+
+  // Disable buttons, start animation
+  setButtons(false);
+  startLoadingAnimation();
+  setStatus('🔄 Connecting to WhatsApp...', 'yellow');
+
+  // Cancel any previous request
+  if (fetchAbort) fetchAbort.abort();
+  fetchAbort = new AbortController();
+
+  try {
+    const resp = await fetch('/api/pair', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phoneNumber: num }),
+      signal: fetchAbort.signal,
+    });
+    const data = await resp.json();
+
+    if (data.success && data.code) {
+      currentCode   = data.code;
+      currentUserId = data.userId || '';
+      stopLoadingAnimation(true);
+      showCode(data.code);
+      setStatus('✅ Code ready — enter it in WhatsApp now', 'green');
+    } else {
+      stopLoadingAnimation(false);
+      showErr(data.message || '❌ Could not generate pairing code. Try again.');
+      setStatus('⚠️ Failed — try again', 'red');
+    }
+  } catch (e) {
+    stopLoadingAnimation(false);
+    if (e.name === 'AbortError') {
+      setStatus('🔄 Cancelled', 'yellow');
+    } else {
+      showErr('❌ Network error: ' + e.message);
+      setStatus('⚠️ Error — check connection', 'red');
+    }
+  } finally {
+    setButtons(true);
+    fetchAbort = null;
+  }
+}
+
+// ── Reset (fully working — cancels server session too) ────────────────────
+async function doReset() {
+  // 1. Kill in-flight request instantly
+  if (fetchAbort) { fetchAbort.abort(); fetchAbort = null; }
+
+  // 2. Reset UI completely
+  phone().value = '';
+  $('codeBox').style.display    = 'none';
+  $('loadingBox').style.display = 'none';
+  hideErr();
+  setStatus('🔒 Ready — enter your number above', 'green');
+  currentCode = '';
+  setButtons(true);
+
+  // 3. Tell server to cancel + wipe the pending session
+  if (currentUserId) {
+    fetch('/api/pair/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUserId }),
+    }).catch(() => {}); // fire-and-forget
+    currentUserId = '';
+  }
+}
+
+// ── Copy code ─────────────────────────────────────────────────────────────
+async function copyCode() {
+  if (!currentCode) return;
+  try {
+    await navigator.clipboard.writeText(currentCode);
+  } catch (_) {
+    // Android fallback
+    const el = $('codeDisplay');
+    const r  = document.createRange();
+    r.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(r);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+  }
+  const ok = $('copyOk');
+  ok.classList.add('show');
+  setTimeout(() => ok.classList.remove('show'), 2500);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function showCode(code) {
+  $('codeDisplay').textContent = code;
+  $('codeBox').style.display   = 'block';
+}
+
+function showErr(msg) {
+  const b = $('errBox');
+  b.textContent     = msg;
+  b.style.display   = 'block';
+}
+function hideErr() { $('errBox').style.display = 'none'; }
+
+function setButtons(enabled) {
+  pairBtn().disabled  = !enabled;
+  resetBtn().disabled = !enabled;
+  pairBtn().textContent = enabled ? '🔓 Get Pairing Code' : '⏳ Please wait...';
+}
+
+function setStatus(text, color) {
+  statusTxt().textContent = text;
+  const dot = statusDot();
+  const map = {
+    green:  ['#25d366','#25d366'],
+    yellow: ['#f59e0b','#f59e0b'],
+    red:    ['#ef4444','#ef4444'],
+  };
+  const [bg, glow] = map[color] || map.green;
+  dot.style.background = bg;
+  dot.style.boxShadow  = `0 0 7px ${glow}`;
+}
+
+// Only allow digits in phone input
+phone().addEventListener('input', function() {
+  this.value = this.value.replace(/[^\d]/g,'');
+});
+</script>
+</body>
+</html>
