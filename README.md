@@ -2,10 +2,7 @@
 <img src="https://img.shields.io/badge/STATUS-ACTIVE-green?style=for-the-badge"/>
 <img src="https://img.shields.io/badge/VERSION-2.0.0-orange?style=for-the-badge"/>
 <h1 align="center">
-  <span style="color:#00FFAA;">NOORX</span> 
-  <span style="color:#00BFFF;">WhatsApp</span> 
-  <span style="color:#FFD700;">Bot</span>
-</h1>
+  
 <h2>🌟 Features</h2>
 
 <p>
