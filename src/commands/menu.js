@@ -83,10 +83,13 @@ module.exports = {
 ┃ ◇ ${p}rate       › Rate anything /10
 ┃ ◇ ${p}roast      › Get roasted 🔥
 ┃ ◇ ${p}compliment › Sweet compliment 💖
+┃ ◇ Join Us for Updates 
+┃ ◇https://whatsapp.com/channel/0029Vb7vchCCBtxK3Ria2k1i
 ┗━━━━━━━━━━━━━━━━━━━▣
 
 〔 ✧ *ɴᴏᴏʀ-x ᴛᴇᴄʜ* ✧ 〕
 _© 2026 NOOR-X • Always Online 🌍_`;
+    
     await sock.sendMessage(jid, { text });
   }
 };
