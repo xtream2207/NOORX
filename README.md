@@ -10,3 +10,5 @@
 <p align="center">
   <img src="https://readme-typing-svg.herokuapp.com/?color=00FFAA&size=30&center=true&vCenter=true&width=600&lines=Advanced+WhatsApp+Bot;Fast+%7C+Secure+%7C+Customizable" />
 </p>
+🍴 Fork Repo
+https://github.com/xtream2207/NOORX/fork
